@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CTO Dinner — Request an invite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    font-family:"Poppins", Arial, Helvetica, sans-serif;
+    color:#fff;
+    background:#0a0a0c;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    background:
+      radial-gradient(120% 80% at 50% 46%, rgba(8,8,10,.35) 0%, rgba(8,8,10,.62) 55%, rgba(8,8,10,.78) 100%),
+      linear-gradient(180deg, rgba(8,8,10,.92) 0%, rgba(8,8,10,.55) 30%, rgba(8,8,10,.6) 62%, rgba(8,8,10,.94) 100%),
+      url('bg.jpg') center/cover no-repeat;
+  }
+
+  /* top bar */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:26px clamp(20px,5vw,64px);
+  }
+  .wordmark{ font-weight:600; font-size:22px; letter-spacing:-.01em; white-space:nowrap; }
+  .wordmark span{ font-weight:300; opacity:.7; }
+  .nav-cta{
+    display:inline-block; text-decoration:none; color:#fff;
+    border:1px solid rgba(255,255,255,.55); border-radius:999px;
+    padding:11px 22px; font-size:14px; font-weight:500; white-space:nowrap;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .nav-cta:hover{ background:#fff; color:#111; border-color:#fff; }
+
+  /* hero content */
+  .center{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:40px clamp(20px,5vw,64px) 72px;
+  }
+  .eyebrow{
+    font-size:clamp(12px,1.4vw,15px); font-weight:500; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(255,255,255,.72); margin-bottom:24px;
+  }
+  h1{
+    font-weight:400; line-height:1.04; letter-spacing:-.02em;
+    font-size:clamp(38px,7.2vw,86px); max-width:14ch; margin:0 auto;
+  }
+  .sub{
+    margin:28px auto 0; max-width:600px;
+    font-size:clamp(16px,1.6vw,20px); font-weight:300; line-height:1.5;
+    color:rgba(255,255,255,.85);
+  }
+
+  /* email capture */
+  form{ margin:38px auto 0; display:flex; gap:12px; width:100%; max-width:560px; justify-content:center; }
+  .field{
+    flex:1; min-width:0;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.45);
+    border-radius:999px;
+    padding:16px 24px;
+    color:#fff; font-family:inherit; font-size:16px;
+    transition:border-color .15s, background .15s;
+  }
+  .field::placeholder{ color:rgba(255,255,255,.6); }
+  .field:focus{ outline:none; border-color:#fff; background:rgba(255,255,255,.12); }
+  .field.err{ border-color:#e98b73; }
+  .submit{
+    flex:0 0 auto; cursor:pointer;
+    background:#fff; color:#111; border:none; border-radius:999px;
+    padding:16px 30px; font-family:inherit; font-size:16px; font-weight:500;
+    white-space:nowrap; transition:transform .12s, opacity .15s;
+  }
+  .submit:hover{ opacity:.9; }
+  .submit:active{ transform:translateY(1px); }
+  .fineprint{ margin:16px auto 0; font-size:13px; font-weight:300; color:rgba(255,255,255,.6); }
+
+  .thanks{ display:none; margin:40px auto 0; max-width:520px; }
+  .thanks h2{ font-weight:400; font-size:clamp(22px,3vw,30px); letter-spacing:-.01em; }
+  .thanks p{ margin-top:12px; font-weight:300; color:rgba(255,255,255,.8); font-size:17px; }
+  #formwrap.done form, #formwrap.done .fineprint{ display:none; }
+  #formwrap.done .thanks{ display:block; }
+
+  @media (max-width:560px){
+    form{ flex-direction:column; }
+    .submit{ width:100%; }
+    .nav-cta{ display:none; }
+  }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <nav>
+      <div class="wordmark">CTO Dinner<span> / NYC</span></div>
+      <a class="nav-cta" href="#join">Request an invite</a>
+    </nav>
+
+    <div class="center">
+      <div class="eyebrow">Invite-only dinner in New York</div>
+      <h1>A private dinner for ecommerce CTOs</h1>
+      <p class="sub">A small table of tech leaders running ecommerce and auto-parts operations across the tri-state area. Drop your work email to request a seat.</p>
+
+      <div id="formwrap">
+        <form id="join" novalidate>
+          <input class="field" type="email" name="email" id="email" placeholder="you@company.com" autocomplete="email" aria-label="Work email" />
+          <button class="submit" type="submit">Request an invite</button>
+        </form>
+        <p class="fineprint">Work email only. We use it just for the invite and the details.</p>
+
+        <div class="thanks">
+          <h2>You're on the list.</h2>
+          <p>Watch your inbox. We'll be in touch with the invite and the details soon.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // To actually capture emails, create a free Formspree form (formspree.io),
+  // then paste its endpoint below in place of YOUR_FORM_ID.
+  const ENDPOINT = "https://formspree.io/f/YOUR_FORM_ID";
+
+  const form = document.getElementById("join");
+  const wrap = document.getElementById("formwrap");
+  const email = document.getElementById("email");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const val = email.value.trim();
+    const ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val);
+    if (!ok) { email.classList.add("err"); email.focus(); return; }
+    email.classList.remove("err");
+
+    try {
+      if (!ENDPOINT.includes("YOUR_FORM_ID")) {
+        await fetch(ENDPOINT, {
+          method: "POST",
+          headers: { "Accept": "application/json" },
+          body: new FormData(form)
+        });
+      }
+    } catch (_) { /* show success regardless so the visitor isn't blocked */ }
+
+    wrap.classList.add("done");
+  });
+</script>
+</body>
+</html>
