@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CTO Dinner</title>
+<style>
+  :root{
+    --paper:#ffffff;
+    --paper-2:#fafafa;
+    --ink:#141414;
+    --muted:#6f6f6f;
+    --faint:#9b9b9b;
+    --hair:#dcdcdc;
+    --hair-2:#ebebeb;
+
+    /* edge categories */
+    --adv:#161616;   /* advance / progression */
+    --con:#1d7a47;   /* convert -> call       */
+    --drp:#bdbdbd;   /* drop -> waitlist      */
+  }
+  /* channel categories (node accents only) */
+  .lane-outbound{ --c:#514ba6; }
+  .lane-inbound { --c:#1f6f96; }
+  .lane-email   { --c:#9c6b1e; }
+  .lane-call    { --c:#1d7a47; }
+  .lane-drop    { --c:#9a9a9a; }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    background:
+      radial-gradient(var(--hair-2) 1px, transparent 1px) 0 0/26px 26px,
+      var(--paper);
+    color:var(--ink);
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  /* ---------- header ---------- */
+  header.page{ max-width:1180px; margin:0 auto; padding:54px 28px 8px; }
+  .kicker{
+    font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:.26em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  h1{
+    font-family:Arial,Helvetica,sans-serif; font-weight:700;
+    font-size:clamp(28px,3.6vw,40px); letter-spacing:-.02em; color:var(--ink);
+    margin:.34em 0 .2em; line-height:1.03;
+  }
+  .sub{ color:var(--muted); font-size:14.5px; max-width:640px; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap:9px 22px; margin-top:22px; align-items:center;
+    font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:.04em; color:var(--muted);
+  }
+  .legend .grp{ display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .legend .sep{ width:1px; height:13px; background:var(--hair); }
+  .legend .k{ display:inline-flex; align-items:center; gap:7px; text-transform:uppercase; }
+  .legend i.line{ width:20px; border-top:2px solid currentColor; display:inline-block; }
+  .legend i.dot{ width:9px; height:9px; display:inline-block; background:var(--c); }
+  .lg-adv{ color:var(--adv); } .lg-con{ color:var(--con); } .lg-drop{ color:#a8a8a8; }
+
+  /* ---------- stage ---------- */
+  .stage-wrap{ overflow:hidden; text-align:center; padding:36px 0 56px; }
+  .stage{
+    position:relative; width:1320px; height:1910px;
+    transform-origin:top left; margin:0; display:block; text-align:left;
+  }
+  svg.edges{ position:absolute; inset:0; width:1320px; height:1910px; pointer-events:none; z-index:1; overflow:visible; }
+
+  .edge{ fill:none; stroke-width:1.25; transition:opacity .15s, stroke-width .15s; }
+  .edge.advance{ stroke:var(--adv); }
+  .edge.convert{ stroke:var(--con); stroke-width:1.9; }
+  .edge.drop{ stroke:var(--drp); }
+  .edge.faded{ opacity:.16; }
+  .edge.hot{ stroke-width:2.4; }
+
+  .bus{ fill:none; stroke:var(--con); stroke-width:1.9; }
+  .bus.faded{ opacity:.2; }
+  .bus.hot{ stroke-width:2.6; }
+  .jx{ fill:var(--con); transition:opacity .15s; }
+  .jx.faded{ opacity:.16; }
+
+  /* edge labels */
+  .elabel{
+    position:absolute; z-index:2; transform:translate(-50%,-50%);
+    font-family:Arial,Helvetica,sans-serif; font-size:9.5px; letter-spacing:.07em;
+    text-transform:uppercase; white-space:nowrap; color:var(--muted);
+    background:var(--paper); padding:2px 6px; border:1px solid var(--hair);
+    transition:opacity .15s;
+  }
+  .elabel.faded{ opacity:.16; }
+
+  /* column headers */
+  .colhead{
+    position:absolute; z-index:2; transform:translateX(-50%);
+    font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:.24em;
+    text-transform:uppercase; color:var(--faint); white-space:nowrap;
+    padding-bottom:7px; border-bottom:1px solid var(--hair);
+  }
+
+  /* ---------- cards ---------- */
+  .card{
+    position:absolute; z-index:3; background:var(--paper);
+    border:1px solid var(--hair); border-radius:2px;
+    padding:11px 14px; cursor:pointer;
+    display:flex; flex-direction:column; gap:6px;
+    transition:border-color .15s, opacity .15s, transform .15s;
+    outline:none;
+  }
+  .card:hover,.card:focus-visible{ border-color:var(--ink); transform:translateY(-1px); }
+  .card.dim{ opacity:.34; }
+  .card .nhead{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .card .nid{ font-family:Arial,Helvetica,sans-serif; font-size:9.5px; letter-spacing:.12em; color:var(--faint); }
+  .card .tag{
+    font-family:Arial,Helvetica,sans-serif; font-size:9.5px; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--c);
+  }
+  .card .ttl{ font-family:Arial,Helvetica,sans-serif; font-weight:600; font-size:15px; line-height:1.18; color:var(--ink); }
+  .card .meta{ font-family:Arial,Helvetica,sans-serif; font-size:10px; color:var(--muted); letter-spacing:.03em; }
+
+  /* hero (the endpoint): black card, high contrast */
+  .card.hero{ background:var(--ink); border-color:var(--ink); padding:16px 20px; }
+  .card.hero .ttl{ color:#fff; font-size:21px; font-weight:700; }
+  .card.hero .nid{ color:#8c8c8c; }
+  .card.hero .tag{ color:#7fd0a2; }
+  .card.hero .meta{ color:#b6b6b6; }
+  .card.hero:hover{ border-color:var(--con); }
+
+  /* ---------- drawer ---------- */
+  .backdrop{ position:fixed; inset:0; z-index:50; background:rgba(20,20,20,.30);
+    opacity:0; pointer-events:none; transition:opacity .2s; }
+  .backdrop.open{ opacity:1; pointer-events:auto; }
+  .drawer{
+    position:fixed; top:0; right:0; z-index:60; height:100%; width:432px; max-width:92vw;
+    background:var(--paper); border-left:1px solid var(--ink);
+    transform:translateX(102%); transition:transform .24s cubic-bezier(.22,.61,.36,1);
+    overflow-y:auto; padding:24px 28px 46px;
+  }
+  .drawer.open{ transform:translateX(0); }
+  .d-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .d-top .ids{ display:flex; align-items:center; gap:10px; }
+  .drawer .nid{ font-family:Arial,Helvetica,sans-serif; font-size:10px; letter-spacing:.12em; color:var(--faint); }
+  .drawer .tag{ font-family:Arial,Helvetica,sans-serif; font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--c); }
+  .close{ appearance:none; background:var(--paper); border:1px solid var(--hair); color:var(--ink);
+    width:32px; height:32px; border-radius:2px; cursor:pointer; font-size:15px; line-height:1;
+    display:flex; align-items:center; justify-content:center; flex:0 0 auto; transition:border-color .15s; }
+  .close:hover{ border-color:var(--ink); }
+  .drawer h2{ font-family:Arial,Helvetica,sans-serif; font-weight:700; font-size:24px; line-height:1.12; letter-spacing:-.01em; margin:18px 0 5px; }
+  .drawer .timing{ font-family:Arial,Helvetica,sans-serif; font-size:11.5px; color:var(--c); letter-spacing:.05em;
+    display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .drawer .timing::before{ content:""; width:7px; height:7px; background:var(--c); }
+  .drawer .body p{ font-size:14px; color:#3c3c3c; margin:0 0 11px; }
+  .drawer .body p:last-child{ margin-bottom:0; }
+
+  .msgs{ margin-top:18px; display:flex; flex-direction:column; gap:12px; }
+  .msg{ border:1px solid var(--hair); border-left:3px solid var(--c); background:var(--paper-2); border-radius:2px; padding:12px 14px; }
+  .msg .m-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
+  .msg .m-label{ font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:.03em; color:var(--ink); }
+  .msg .m-day{ font-family:Arial,Helvetica,sans-serif; font-size:9.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .msg pre{ margin:0 0 11px; white-space:pre-wrap; word-break:break-word;
+    font-family:Arial,Helvetica,sans-serif; font-size:13px; line-height:1.55; color:#333; }
+  .copy{ appearance:none; cursor:pointer; font-family:Arial,Helvetica,sans-serif; font-size:11px; letter-spacing:.04em;
+    border:1px solid var(--ink); background:var(--paper); color:var(--ink); padding:6px 13px; border-radius:2px; transition:background .15s,color .15s; }
+  .copy:hover{ background:var(--ink); color:#fff; }
+  .copy.ok{ background:var(--ink); color:#fff; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <svg class="edges" id="edges" viewBox="0 0 1320 1910" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="context-stroke" />
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <div class="backdrop" id="backdrop"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" tabindex="-1"></aside>
+
+<script>
+/* ============================================================
+   LAYOUT CONSTANTS: routing channels
+   ============================================================ */
+const RAIL_L = 74;
+const TRUNK  = 650;
+const RAIL_R = 1256;
+const CALL_TOP = 950;
+
+/* message copy (verbatim) */
+const M1 = "Hey [First Name],\nI'm hosting a CTO dinner in NYC in late July with a dozen ecommerce and auto-parts tech leaders. [Anchor CTO, Company] is in, among others.\nWant me to add you to the list?";
+const M2 = "Hey [First Name],\nWe just finalized the venue for the CTO dinner. It'll be at [X Location], likely on July 21st.\nThe list is coming together nicely and we still have room if you'd like to join. Here's my Calendly if you want to chat through more of the details: [Calendly link]";
+const M3 = "Hey [First Name],\nWanted to reach out one final time. We now have 10 people confirmed and only a few seats left.\nShould I hold one of those seats for you?\nHere's my Calendly if you'd prefer to chat through the details first: [Calendly link]";
+
+/* ============================================================
+   NODES: content + layout rect (edit here to extend)
+   ============================================================ */
+const NODES = {
+  tiered: {
+    id:"OB-00", title:"The target list", lane:"outbound", stageTag:"The list",
+    body:["A checked list of companies that suit the dinner: online stores that sell a lot and carry big product ranges, mainly car and car-parts sellers plus retailers that ship real volume. The strongest 43 or so go first, then the next 45, then a few more. That comes to about 219 people. They are in the New York tri-state area and around Philadelphia."],
+    x:150, y:150, w:220, h:84
+  },
+  connection: {
+    id:"OB-01", title:"Connection request", lane:"outbound", stageTag:"Connect", timing:"Week 1 onward",
+    body:["A LinkedIn connection request, sent for us but slowly so the account stays safe: about 100 a week, or up to 200 on a paid account.","You have to be connected before you can message someone, so this is really where the outreach starts."],
+    x:150, y:280, w:220, h:84
+  },
+  m1: {
+    title:"Message 1", lane:"outbound", stageTag:"Outreach", timing:"Day 0",
+    body:[],
+    messages:[{ label:"LinkedIn message", day:"Day 0", copy:M1 }],
+    x:150, y:420, w:220, h:78
+  },
+  m2: {
+    title:"Message 2", lane:"outbound", stageTag:"Outreach", timing:"Day 2",
+    body:[],
+    messages:[{ label:"LinkedIn message", day:"Day 2", copy:M2 }],
+    x:150, y:540, w:220, h:78
+  },
+  m3: {
+    title:"Message 3", lane:"outbound", stageTag:"Outreach", timing:"Day 4",
+    body:[],
+    messages:[{ label:"LinkedIn message", day:"Day 4", copy:M3 }],
+    x:150, y:660, w:220, h:78
+  },
+  emailfb: {
+    id:"OB-05", title:"Backup emails", lane:"email", stageTag:"Backup emails", timing:"Around week 2",
+    body:["This picks up everyone the LinkedIn outreach did not turn into a reply: people who never accepted the request, and people who got all three messages but stayed quiet. It is three emails over three days that tell the same story as the LinkedIn messages and aim to book the call.","People who were never connected get the full invite as their first email. People who were connected but quiet get an opener that mentions the earlier LinkedIn attempt. This needs their work email, which comes from the list."],
+    messages:[
+      { label:"Email 1: the invite", day:"Day 0", copy:"Still to be written. The invite, naming the well-known guest who is already coming." },
+      { label:"Email 2: venue and date", day:"Day 2", copy:"Still to be written. Venue and date, with the link to book a time." },
+      { label:"Email 3: last call", day:"Day 4", copy:"Still to be written. Last call, with seats nearly gone." }
+    ],
+    x:150, y:800, w:220, h:84
+  },
+
+  posts: {
+    id:"IN-00", title:"LinkedIn posts", lane:"inbound", stageTag:"Posts", timing:"2 per week",
+    body:["Two posts a week from Adam's account, each linking to the sign-up page. Since the page itself does not screen anyone, the posts do the screening: only people who care enough will click through and sign up.","About 12 posts over the roughly six-week run. Adam most likely writes these himself."],
+    x:980, y:150, w:220, h:84
+  },
+  landing: {
+    id:"IN-01", title:"Sign-up page", lane:"inbound", stageTag:"Sign-up",
+    body:["A simple page that just asks for a work email, with no extra questions, so it is as easy as possible to sign up. Asking for a work email is the only built-in check: a company address tells you more than a personal Gmail."],
+    x:980, y:280, w:220, h:84
+  },
+  vet: {
+    id:"IN-02", title:"Check the fit", lane:"inbound", stageTag:"Check the fit",
+    body:["For each work email that comes in, look up the company and check whether it suits the dinner, using the same standards as the outreach list. Good fits go on to the booking emails. The rest are quietly set aside. Quick to do, since not many are expected."],
+    x:980, y:420, w:220, h:84
+  },
+  booking: {
+    id:"IN-03", title:"Booking emails", lane:"email", stageTag:"Book the call",
+    body:["Sent to the people who passed the check, inviting them to grab a 15-minute call with Adam using the same booking link everyone else uses."],
+    x:980, y:560, w:220, h:84
+  },
+
+  call: {
+    title:"Call with Adam", lane:"call", stageTag:"Yes or no", timing:"15 minutes",
+    body:["The point every path leads to. The 15-minute call does two things: a quick check that they are a good fit, and the real ask to commit, where naming who else is coming does most of the work.","A yes starts the email sequence below. A no or an unsure gets a manual follow-up by hand."],
+    x:525, y:950, w:250, h:120
+  },
+  waitlistL: {
+    id:"HOLD-1", title:"Waitlist", lane:"drop", stageTag:"On hold",
+    body:["People none of the steps turned into a yes. Kept on hand and contacted again if seats open up closer to the date. Same group as the other waitlist."],
+    x:160, y:1000, w:200, h:80
+  },
+  waitlistR: {
+    id:"HOLD-2", title:"Waitlist", lane:"drop", stageTag:"On hold",
+    body:["People none of the steps turned into a yes. Kept on hand and contacted again if seats open up closer to the date. Same group as the other waitlist."],
+    x:980, y:780, w:220, h:80
+  },
+
+  email_thanks: {
+    title:"Thanks for the call", lane:"email", stageTag:"Email", timing:"Right after the call",
+    body:["Confirms the yes, lets them know a calendar invite is on the way, and says we are glad to have them."],
+    x:525, y:1116, w:250, h:80
+  },
+  email_invite: {
+    title:"Invite plus the details", lane:"email", stageTag:"Email", timing:"Same day",
+    body:["Sends the calendar invite along with everything they need to know: date, venue, time, and what the evening looks like."],
+    x:525, y:1242, w:250, h:80
+  },
+  email_icymi: {
+    title:"In case you missed it", lane:"email", stageTag:"Email", timing:"A few days later",
+    body:["A light bump of the details email, for anyone who did not open the first one."],
+    x:525, y:1368, w:250, h:80
+  },
+  email_week: {
+    title:"One week to go", lane:"email", stageTag:"Email", timing:"7 days before",
+    body:["A reminder a week out to keep the dinner top of mind and build anticipation."],
+    x:525, y:1494, w:250, h:80
+  },
+  email_tomorrow: {
+    title:"See you tomorrow", lane:"email", stageTag:"Email", timing:"Day before",
+    body:["A short note the day before with arrival details."],
+    x:525, y:1620, w:250, h:80
+  },
+  dinner: {
+    title:"The dinner", lane:"call", stageTag:"The event", timing:"July 21", hero:true,
+    body:["The dinner itself. Everything in the funnel leads here."],
+    x:515, y:1746, w:270, h:104
+  },
+  manual: {
+    title:"Manual follow-up", lane:"drop", stageTag:"By hand",
+    body:["People who said no or were not sure on the call. Followed up one to one as needed, not on an automated sequence."],
+    x:900, y:1160, w:210, h:84
+  }
+};
+
+/* ============================================================
+   EDGES: logical connection + orthogonal route + category
+   route: spineV | down | railL | railR | busL | busR
+   type:  advance | convert | drop
+   ============================================================ */
+const EDGES = [
+  { from:"tiered",     to:"connection", route:"spineV", type:"advance" },
+  { from:"connection", to:"m1",         route:"spineV", type:"advance", label:"Accepts" },
+  { from:"m1",         to:"m2",         route:"spineV", type:"advance", label:"No reply, 2 days" },
+  { from:"m2",         to:"m3",         route:"spineV", type:"advance", label:"No reply, 2 days" },
+  { from:"m3",         to:"emailfb",    route:"spineV", type:"advance", label:"No reply" },
+  { from:"connection", to:"emailfb",    route:"railL",  type:"advance", label:"Not accepted, 1 week" },
+
+  { from:"posts",      to:"landing",    route:"spineV", type:"advance" },
+  { from:"landing",    to:"vet",        route:"spineV", type:"advance" },
+  { from:"vet",        to:"booking",    route:"spineV", type:"advance", label:"Good fit" },
+
+  { from:"m1",         to:"call",       route:"busL",   type:"convert", label:"Replies" },
+  { from:"m2",         to:"call",       route:"busL",   type:"convert", label:"Replies" },
+  { from:"m3",         to:"call",       route:"busL",   type:"convert", label:"Replies" },
+  { from:"emailfb",    to:"call",       route:"busL",   type:"convert", label:"Replies" },
+  { from:"booking",    to:"call",       route:"busR",   type:"convert", label:"Books a time" },
+
+  { from:"emailfb",    to:"waitlistL",  route:"down",   type:"drop",    label:"No reply" },
+  { from:"vet",        to:"waitlistR",  route:"railR",  type:"drop",    label:"Not a fit" },
+  { from:"booking",    to:"waitlistR",  route:"down",   type:"drop",    label:"No reply" },
+
+  { from:"call",           to:"email_thanks",   route:"spineV",    type:"advance", label:"Yes" },
+  { from:"email_thanks",   to:"email_invite",   route:"spineV",    type:"advance" },
+  { from:"email_invite",   to:"email_icymi",    route:"spineV",    type:"advance" },
+  { from:"email_icymi",    to:"email_week",     route:"spineV",    type:"advance" },
+  { from:"email_week",     to:"email_tomorrow", route:"spineV",    type:"advance" },
+  { from:"email_tomorrow", to:"dinner",         route:"spineV",    type:"advance" },
+  { from:"call",           to:"manual",         route:"rightDown", type:"drop",    label:"No or unsure" }
+];
+
+const CONVERTERS = ["m1","m2","m3","emailfb","booking"];
+const HEADERS = [
+  { text:"We reach out (LinkedIn)", x:260, y:120 },
+  { text:"The call", x:TRUNK, y:120 },
+  { text:"They find us (posts)", x:1090, y:120 }
+];
+
+/* ============================================================
+   GEOMETRY
+   ============================================================ */
+const cx = n => n.x + n.w/2, cy = n => n.y + n.h/2;
+
+function routePts(e){
+  const f = NODES[e.from], t = NODES[e.to];
+  switch(e.route){
+    case "spineV": {
+      const x = cx(f), x2 = cx(t);
+      const p = (x===x2) ? [{x,y:f.y+f.h},{x:x2,y:t.y}]
+                         : [{x,y:f.y+f.h},{x,y:(f.y+f.h+t.y)/2},{x:x2,y:(f.y+f.h+t.y)/2},{x:x2,y:t.y}];
+      return { pts:p, lx:x2, ly:(f.y+f.h+t.y)/2 };
+    }
+    case "down": { const x=cx(f); return { pts:[{x,y:f.y+f.h},{x,y:t.y}], lx:x, ly:(f.y+f.h+t.y)/2 }; }
+    case "railL": { const ay=cy(f),by=cy(t);
+      return { pts:[{x:f.x,y:ay},{x:RAIL_L,y:ay},{x:RAIL_L,y:by},{x:t.x,y:by}], lx:RAIL_L, ly:(ay+by)/2 }; }
+    case "railR": { const ay=cy(f),by=cy(t);
+      return { pts:[{x:f.x+f.w,y:ay},{x:RAIL_R,y:ay},{x:RAIL_R,y:by},{x:t.x+t.w,y:by}], lx:RAIL_R, ly:(ay+by)/2 }; }
+    case "busL": { const ay=cy(f); return { pts:[{x:f.x+f.w,y:ay},{x:TRUNK,y:ay}], lx:(f.x+f.w+TRUNK)/2, ly:ay }; }
+    case "busR": { const ay=cy(f); return { pts:[{x:f.x,y:ay},{x:TRUNK,y:ay}], lx:(f.x+TRUNK)/2, ly:ay }; }
+    case "rightDown": { const ay=cy(f), tx=cx(t);
+      return { pts:[{x:f.x+f.w,y:ay},{x:tx,y:ay},{x:tx,y:t.y}], lx:(f.x+f.w+tx)/2, ly:ay }; }
+  }
+}
+
+function ortho(pts, r=8){
+  if(pts.length<2) return "";
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for(let i=1;i<pts.length-1;i++){
+    const p0=pts[i-1], p1=pts[i], p2=pts[i+1];
+    const len1=Math.hypot(p1.x-p0.x,p1.y-p0.y), len2=Math.hypot(p2.x-p1.x,p2.y-p1.y);
+    const rr=Math.min(r, len1/2, len2/2);
+    const v1={x:(p1.x-p0.x)/len1,y:(p1.y-p0.y)/len1};
+    const v2={x:(p2.x-p1.x)/len2,y:(p2.y-p1.y)/len2};
+    const a={x:p1.x-v1.x*rr, y:p1.y-v1.y*rr};
+    const b={x:p1.x+v2.x*rr, y:p1.y+v2.y*rr};
+    d += ` L ${a.x.toFixed(1)} ${a.y.toFixed(1)} Q ${p1.x} ${p1.y} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
+  }
+  const last=pts[pts.length-1];
+  d += ` L ${last.x} ${last.y}`;
+  return d;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const SVGNS="http://www.w3.org/2000/svg";
+const stage=document.getElementById("stage");
+const svg=document.getElementById("edges");
+const drawer=document.getElementById("drawer");
+const backdrop=document.getElementById("backdrop");
+
+const adj={}; Object.keys(NODES).forEach(id=>adj[id]=new Set([id]));
+EDGES.forEach(e=>{ adj[e.from].add(e.to); adj[e.to].add(e.from); });
+
+HEADERS.forEach(h=>{
+  const d=document.createElement("div");
+  d.className="colhead"; d.textContent=h.text;
+  d.style.left=h.x+"px"; d.style.top=h.y+"px"; stage.appendChild(d);
+});
+
+EDGES.forEach((e,i)=>{
+  const r=routePts(e);
+  const p=document.createElementNS(SVGNS,"path");
+  p.setAttribute("d", ortho(r.pts));
+  p.setAttribute("class", `edge ${e.type}`);
+  p.setAttribute("marker-end","url(#arrow)");
+  p.dataset.from=e.from; p.dataset.to=e.to;
+  svg.appendChild(p);
+  if(e.label){
+    const l=document.createElement("div");
+    l.className="elabel"; l.textContent=e.label;
+    l.style.left=r.lx+"px"; l.style.top=r.ly+"px";
+    l.dataset.from=e.from; l.dataset.to=e.to; stage.appendChild(l);
+  }
+});
+
+const busTop = Math.min(...["m1","m2","m3","emailfb"].map(id=>cy(NODES[id])));
+const bus=document.createElementNS(SVGNS,"path");
+bus.setAttribute("d", `M ${TRUNK} ${busTop} L ${TRUNK} ${CALL_TOP}`);
+bus.setAttribute("class","bus"); bus.setAttribute("marker-end","url(#arrow)");
+svg.appendChild(bus);
+
+CONVERTERS.forEach(id=>{
+  const y=cy(NODES[id]);
+  const sq=document.createElementNS(SVGNS,"rect");
+  sq.setAttribute("x", TRUNK-3); sq.setAttribute("y", y-3);
+  sq.setAttribute("width",6); sq.setAttribute("height",6);
+  sq.setAttribute("class","jx"); sq.dataset.id=id;
+  sq.setAttribute("transform",`rotate(45 ${TRUNK} ${y})`);
+  svg.appendChild(sq);
+});
+
+for(const id in NODES){
+  const n=NODES[id];
+  const el=document.createElement("div");
+  el.className=`card lane-${n.lane}`+(n.hero?" hero":"");
+  el.style.left=n.x+"px"; el.style.top=n.y+"px"; el.style.width=n.w+"px"; el.style.height=n.h+"px";
+  el.dataset.id=id; el.tabIndex=0; el.setAttribute("role","button"); el.setAttribute("aria-label", n.title+", open details");
+  el.innerHTML =
+    `<div class="nhead"><span class="tag">${n.stageTag}</span></div>`+
+    `<div class="ttl">${n.title}</div>`+
+    (n.timing ? `<div class="meta">${n.timing}</div>` : ``);
+  el.addEventListener("click",()=>openNode(id));
+  el.addEventListener("keydown",ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); openNode(id); }});
+  el.addEventListener("mouseenter",()=>highlight(id));
+  el.addEventListener("mouseleave",clearHi);
+  el.addEventListener("focus",()=>highlight(id));
+  el.addEventListener("blur",clearHi);
+  stage.appendChild(el);
+}
+
+const allPaths=[...svg.querySelectorAll(".edge")];
+const allLabels=[...stage.querySelectorAll(".elabel")];
+const allCards=[...stage.querySelectorAll(".card")];
+const allJx=[...svg.querySelectorAll(".jx")];
+
+function highlight(id){
+  allCards.forEach(c=>c.classList.toggle("dim", !adj[id].has(c.dataset.id)));
+  const busActive = CONVERTERS.includes(id) || id==="call";
+  allPaths.forEach(p=>{ const on=p.dataset.from===id||p.dataset.to===id; p.classList.toggle("hot",on); p.classList.toggle("faded",!on); });
+  bus.classList.toggle("hot", busActive); bus.classList.toggle("faded", !busActive);
+  allJx.forEach(j=>{ const on=busActive&&(id==="call"||j.dataset.id===id); j.classList.toggle("faded",!on); });
+  allLabels.forEach(l=>{ const on=l.dataset.from===id||l.dataset.to===id; l.classList.toggle("faded",!on); });
+}
+function clearHi(){
+  allCards.forEach(c=>c.classList.remove("dim"));
+  allPaths.forEach(p=>p.classList.remove("hot","faded"));
+  bus.classList.remove("hot","faded");
+  allJx.forEach(j=>j.classList.remove("faded"));
+  allLabels.forEach(l=>l.classList.remove("faded"));
+}
+
+/* ---------- drawer ---------- */
+let lastFocus=null;
+function openNode(id){
+  const n=NODES[id]; lastFocus=document.activeElement;
+  drawer.className="drawer lane-"+n.lane;
+  let html="";
+  html+=`<div class="d-top"><span class="ids"><span class="tag">${n.stageTag}</span></span>`+
+        `<button class="close" id="closeBtn" aria-label="Close">✕</button></div>`;
+  html+=`<h2 id="d-title">${n.title}</h2>`;
+  if(n.timing) html+=`<div class="timing">${n.timing}</div>`;
+  if(n.body && n.body.length) html+=`<div class="body">`+n.body.map(p=>`<p>${p}</p>`).join("")+`</div>`;
+  if(n.messages&&n.messages.length){
+    html+=`<div class="msgs">`;
+    n.messages.forEach((m,i)=>{
+      html+=`<div class="msg"><div class="m-head"><span class="m-label">${m.label}</span>`+
+        (m.day?`<span class="m-day">${m.day}</span>`:``)+`</div><pre id="msg-${i}"></pre>`+
+        `<button class="copy" data-mi="${i}">Copy</button></div>`;
+    });
+    html+=`</div>`;
+  }
+  drawer.innerHTML=html;
+  if(n.messages) n.messages.forEach((m,i)=>{ drawer.querySelector(`#msg-${i}`).textContent=m.copy; });
+  drawer.querySelector("#closeBtn").addEventListener("click",closeDrawer);
+  drawer.querySelectorAll(".copy").forEach(b=>b.addEventListener("click",()=>copyText(n.messages[+b.dataset.mi].copy,b)));
+  drawer.classList.add("open"); backdrop.classList.add("open"); drawer.scrollTop=0; drawer.focus();
+}
+function closeDrawer(){
+  drawer.classList.remove("open"); backdrop.classList.remove("open");
+  if(lastFocus&&lastFocus.focus) lastFocus.focus();
+}
+backdrop.addEventListener("click",closeDrawer);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeDrawer(); });
+
+async function copyText(text,btn){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(_){ const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.focus(); ta.select(); try{document.execCommand("copy");}catch(__){} ta.remove(); }
+  const o=btn.textContent; btn.textContent="Copied"; btn.classList.add("ok");
+  setTimeout(()=>{ btn.textContent=o; btn.classList.remove("ok"); },1400);
+}
+
+/* ---------- responsive scale ---------- */
+function fit(){
+  const wrap=document.querySelector(".stage-wrap");
+  const avail=wrap.clientWidth;
+  const scale=Math.min(1, avail/1320);
+  const offset=Math.max(0, (avail - 1320*scale)/2);
+  stage.style.transform=`translateX(${offset}px) scale(${scale})`;
+  wrap.style.height=(1910*scale+12)+"px";
+}
+window.addEventListener("resize",fit);
+window.addEventListener("load",fit);
+fit();
+</script>
+</body>
+</html>
