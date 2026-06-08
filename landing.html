@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <style>
   *{ box-sizing:border-box; margin:0; padding:0; }
-  html,body{ height:100%; }
+  html,body{ height:100%; overflow:hidden; overscroll-behavior:none; }
   body{
     font-family:"Poppins", Arial, Helvetica, sans-serif;
     color:#fff;
@@ -19,7 +19,8 @@
 
   .hero{
     position:relative;
-    min-height:100vh;
+    height:100vh;
+    height:100dvh;
     display:flex; flex-direction:column;
     background:
       radial-gradient(120% 80% at 50% 46%, rgba(8,8,10,.35) 0%, rgba(8,8,10,.62) 55%, rgba(8,8,10,.78) 100%),
@@ -30,7 +31,7 @@
   /* top bar */
   nav{
     display:flex; align-items:center; justify-content:space-between;
-    padding:26px clamp(20px,5vw,64px);
+    padding:clamp(14px,2.6vh,26px) clamp(20px,5vw,64px);
   }
   .wordmark{ font-weight:600; font-size:22px; letter-spacing:-.01em; white-space:nowrap; }
   .wordmark span{ font-weight:300; opacity:.7; }
@@ -44,25 +45,25 @@
 
   /* hero content */
   .center{
-    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-    text-align:center; padding:40px clamp(20px,5vw,64px) 72px;
+    flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:clamp(12px,2vh,40px) clamp(20px,5vw,64px) clamp(18px,4vh,56px);
   }
   .eyebrow{
-    font-size:clamp(12px,1.4vw,15px); font-weight:500; letter-spacing:.24em;
-    text-transform:uppercase; color:rgba(255,255,255,.72); margin-bottom:24px;
+    font-size:clamp(11px,1.4vw,15px); font-weight:500; letter-spacing:.24em;
+    text-transform:uppercase; color:rgba(255,255,255,.72); margin-bottom:clamp(12px,2.2vh,24px);
   }
   h1{
     font-weight:400; line-height:1.05; letter-spacing:-.02em;
-    font-size:clamp(36px,6.4vw,78px); max-width:18ch; margin:0 auto;
+    font-size:clamp(32px,6.2vw,76px); max-width:18ch; margin:0 auto;
   }
   .sub{
-    margin:28px auto 0; max-width:600px;
-    font-size:clamp(16px,1.6vw,20px); font-weight:300; line-height:1.5;
+    margin:clamp(14px,2.2vh,28px) auto 0; max-width:600px;
+    font-size:clamp(15px,1.6vw,19px); font-weight:300; line-height:1.5;
     color:rgba(255,255,255,.85);
   }
 
   /* email capture */
-  form{ margin:38px auto 0; display:flex; gap:12px; width:100%; max-width:560px; justify-content:center; }
+  form{ margin:clamp(20px,3vh,38px) auto 0; display:flex; gap:12px; width:100%; max-width:560px; justify-content:center; }
   .field{
     flex:1; min-width:0;
     background:rgba(255,255,255,.07);
@@ -83,7 +84,7 @@
   }
   .submit:hover{ opacity:.9; }
   .submit:active{ transform:translateY(1px); }
-  .fineprint{ margin:16px auto 0; font-size:13px; font-weight:300; color:rgba(255,255,255,.6); }
+  .fineprint{ margin:clamp(10px,1.6vh,16px) auto 0; font-size:13px; font-weight:300; color:rgba(255,255,255,.6); }
 
   .thanks{ display:none; margin:40px auto 0; max-width:520px; }
   .thanks h2{ font-weight:400; font-size:clamp(22px,3vw,30px); letter-spacing:-.01em; }
@@ -95,6 +96,10 @@
     form{ flex-direction:column; }
     .submit{ width:100%; }
     .nav-cta{ display:none; }
+  }
+  @media (max-height:680px){
+    h1{ font-size:clamp(26px,6vw,42px); }
+    .sub{ font-size:15px; }
   }
 </style>
 </head>
