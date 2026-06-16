@@ -96,6 +96,8 @@
   .submit:hover{ opacity:.9; }
   .submit:active{ transform:translateY(1px); }
   .fineprint{ margin:clamp(10px,1.6vh,16px) auto 0; font-size:13px; font-weight:300; color:rgba(255,255,255,.6); }
+  .formerr{ display:none; margin:clamp(10px,1.6vh,16px) auto 0; max-width:560px; font-size:13px; font-weight:400; color:#e98b73; }
+  #formwrap.error .formerr{ display:block; }
 
   .thanks{ display:none; margin:clamp(20px,3vh,38px) auto 0; max-width:520px; }
   .thanks h2{ font-weight:400; font-size:clamp(22px,3vw,30px); letter-spacing:-.01em; }
@@ -133,6 +135,7 @@
           <button class="submit" type="submit">Request an invite</button>
         </form>
         <p class="fineprint">Work email only. We use it just for the invite and the details.</p>
+        <p class="formerr" id="formerr" role="alert"></p>
 
         <div class="thanks">
           <h2>You're on the list.</h2>
@@ -143,32 +146,73 @@
   </div>
 
 <script>
-  // To actually capture emails, create a free Formspree form (formspree.io),
-  // then paste its endpoint below in place of YOUR_FORM_ID.
-  const ENDPOINT = "https://formspree.io/f/YOUR_FORM_ID";
+  // Posts to the Vercel serverless function /api/subscribe, which validates the
+  // address is a work email and stores it in Supabase. Set SUPABASE_URL and
+  // SUPABASE_SERVICE_ROLE_KEY in the Vercel project for this to persist.
+  const ENDPOINT = "/api/subscribe";
+
+  // Free / personal providers blocked client-side for instant feedback.
+  // The server re-checks this against a fuller list — this is just UX.
+  const FREE = new Set([
+    "gmail.com","googlemail.com","yahoo.com","ymail.com","hotmail.com",
+    "outlook.com","live.com","msn.com","icloud.com","me.com","aol.com",
+    "proton.me","protonmail.com","gmx.com","mail.com","zoho.com","yandex.com",
+    "hey.com","qq.com","163.com"
+  ]);
 
   const form = document.getElementById("join");
   const wrap = document.getElementById("formwrap");
   const email = document.getElementById("email");
+  const errEl = document.getElementById("formerr");
+
+  function showError(msg) {
+    errEl.textContent = msg;
+    wrap.classList.add("error");
+    email.classList.add("err");
+    email.focus();
+  }
+  function clearError() {
+    wrap.classList.remove("error");
+    email.classList.remove("err");
+  }
+  email.addEventListener("input", clearError);
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const val = email.value.trim();
-    const ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val);
-    if (!ok) { email.classList.add("err"); email.focus(); return; }
-    email.classList.remove("err");
+    const val = email.value.trim().toLowerCase();
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) {
+      showError("Please enter a valid email address.");
+      return;
+    }
+    if (FREE.has(val.split("@")[1])) {
+      showError("Please use your work email — personal addresses aren't accepted.");
+      return;
+    }
+    clearError();
+
+    const btn = form.querySelector(".submit");
+    const label = btn.textContent;
+    btn.disabled = true; btn.textContent = "Sending…";
 
     try {
-      if (!ENDPOINT.includes("YOUR_FORM_ID")) {
-        await fetch(ENDPOINT, {
-          method: "POST",
-          headers: { "Accept": "application/json" },
-          body: new FormData(form)
-        });
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: val })
+      });
+      if (res.ok) {
+        wrap.classList.add("done");
+        return;
       }
-    } catch (_) { /* show success regardless so the visitor isn't blocked */ }
-
-    wrap.classList.add("done");
+      let msg = "Something went wrong. Please try again.";
+      try { const d = await res.json(); if (d && d.error) msg = d.error; } catch (_) {}
+      showError(msg);
+    } catch (_) {
+      showError("Network error. Please try again.");
+    } finally {
+      btn.disabled = false; btn.textContent = label;
+    }
   });
 </script>
 </body>

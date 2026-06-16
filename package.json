@@ -1,0 +1,7 @@
+{
+  "name": "cto-dinner-funnel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CTO Dinner invite landing page + work-email capture API"
+}
