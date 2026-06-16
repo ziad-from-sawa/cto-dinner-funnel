@@ -1,0 +1,8 @@
+# Keep internal/working files off the public site
+linkedin-drafts/
+*.md
+server.log
+.git/
+.gitignore
+.surgeignore
+.playwright-mcp/
