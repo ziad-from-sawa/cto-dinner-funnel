@@ -146,13 +146,14 @@
   </div>
 
 <script>
-  // Posts to the Vercel serverless function /api/subscribe, which validates the
-  // address is a work email and stores it in Supabase. Set SUPABASE_URL and
-  // SUPABASE_SERVICE_ROLE_KEY in the Vercel project for this to persist.
-  const ENDPOINT = "/api/subscribe";
+  // Writes directly to Supabase using the public anon key (safe to expose).
+  // The "work email only" rule is enforced by a row-level-security policy in
+  // Postgres, so it can't be bypassed; the table is insert-only (not readable).
+  const SUPABASE_URL = "__SUPABASE_URL__";
+  const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
 
   // Free / personal providers blocked client-side for instant feedback.
-  // The server re-checks this against a fuller list — this is just UX.
+  // The database re-checks against a fuller list — this is just UX.
   const FREE = new Set([
     "gmail.com","googlemail.com","yahoo.com","ymail.com","hotmail.com",
     "outlook.com","live.com","msn.com","icloud.com","me.com","aol.com",
@@ -196,18 +197,27 @@
     btn.disabled = true; btn.textContent = "Sending…";
 
     try {
-      const res = await fetch(ENDPOINT, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/subscribers`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=minimal"
+        },
         body: JSON.stringify({ email: val })
       });
-      if (res.ok) {
+      // 201 = saved. 409 = already on the list (unique email) — also success.
+      if (res.status === 201 || res.status === 409) {
         wrap.classList.add("done");
         return;
       }
-      let msg = "Something went wrong. Please try again.";
-      try { const d = await res.json(); if (d && d.error) msg = d.error; } catch (_) {}
-      showError(msg);
+      // 401/403 = row-level-security rejected it (not a work email).
+      if (res.status === 401 || res.status === 403) {
+        showError("Please use your work email — personal addresses aren't accepted.");
+        return;
+      }
+      showError("Something went wrong. Please try again.");
     } catch (_) {
       showError("Network error. Please try again.");
     } finally {
