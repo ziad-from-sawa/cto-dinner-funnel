@@ -99,6 +99,22 @@
   .formerr{ display:none; margin:clamp(10px,1.6vh,16px) auto 0; max-width:560px; font-size:13px; font-weight:400; color:#e98b73; }
   #formwrap.error .formerr{ display:block; }
 
+  /* popup toast for validation messages */
+  .toast{
+    position:fixed; left:50%; top:24px; z-index:60;
+    transform:translate(-50%,-160%); opacity:0;
+    display:flex; align-items:center; gap:11px;
+    max-width:min(92vw,420px);
+    background:rgba(22,17,14,.94); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+    border:1px solid rgba(233,139,115,.55); border-radius:14px;
+    padding:15px 20px; color:#fff; font-size:15px; font-weight:400; line-height:1.35;
+    box-shadow:0 16px 48px rgba(0,0,0,.55);
+    transition:transform .38s cubic-bezier(.2,.85,.25,1), opacity .38s;
+  }
+  .toast.show{ transform:translate(-50%,0); opacity:1; }
+  .toast .dot{ flex:0 0 auto; width:9px; height:9px; border-radius:50%; background:#e98b73; box-shadow:0 0 0 4px rgba(233,139,115,.22); }
+  @media (max-width:560px){ .toast{ top:16px; font-size:14px; padding:13px 17px; } }
+
   .thanks{ display:none; margin:clamp(20px,3vh,38px) auto 0; max-width:520px; }
   .thanks h2{ font-weight:400; font-size:clamp(22px,3vw,30px); letter-spacing:-.01em; }
   .thanks p{ margin-top:clamp(8px,1.4vh,12px); font-weight:300; color:rgba(255,255,255,.8); font-size:clamp(15px,1.6vw,17px); }
@@ -119,6 +135,10 @@
 </style>
 </head>
 <body>
+  <div class="toast" id="toast" role="alert" aria-live="assertive">
+    <span class="dot"></span><span class="toast-msg"></span>
+  </div>
+
   <div class="hero">
     <nav>
       <div class="venue">at Cathédrale NYC &middot; East Village</div>
@@ -165,12 +185,22 @@
   const wrap = document.getElementById("formwrap");
   const email = document.getElementById("email");
   const errEl = document.getElementById("formerr");
+  const toast = document.getElementById("toast");
+  const toastMsg = toast.querySelector(".toast-msg");
+  let toastTimer;
 
+  function showToast(msg) {
+    toastMsg.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 4500);
+  }
   function showError(msg) {
     errEl.textContent = msg;
     wrap.classList.add("error");
     email.classList.add("err");
     email.focus();
+    showToast(msg);
   }
   function clearError() {
     wrap.classList.remove("error");
