@@ -1,0 +1,11 @@
+# Never upload secrets or internal/working files to Vercel.
+.env
+.env.*
+.git
+.gitignore
+.vercelignore
+.surgeignore
+linkedin-drafts/
+server.log
+.playwright-mcp/
+supabase-schema.sql
