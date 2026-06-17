@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>CTO Dinner — Request an invite</title>
+<title>CTO Dinner · Request an invite</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -159,7 +159,7 @@
 
         <div class="thanks">
           <h2>You're on the list.</h2>
-          <p>Watch your inbox. We'll be in touch with the invite and the evening's details &mdash; the date, the table, and your seat at Cathédrale, 112 East 11th Street.</p>
+          <p>Watch your inbox. We'll be in touch with the invite and the evening's details: the date, the table, and your seat at Cathédrale, 112 East 11th Street.</p>
         </div>
       </div>
     </div>
@@ -217,7 +217,7 @@
       return;
     }
     if (FREE.has(val.split("@")[1])) {
-      showError("Please use your work email — personal addresses aren't accepted.");
+      showError("Please use your work email. Personal addresses aren't accepted.");
       return;
     }
     clearError();
@@ -244,7 +244,7 @@
       }
       // 401/403 = row-level-security rejected it (not a work email).
       if (res.status === 401 || res.status === 403) {
-        showError("Please use your work email — personal addresses aren't accepted.");
+        showError("Please use your work email. Personal addresses aren't accepted.");
         return;
       }
       showError("Something went wrong. Please try again.");
