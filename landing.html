@@ -222,6 +222,10 @@
     }
     clearError();
 
+    // Capture which channel the visitor came from (?utm_source=...) so each
+    // signup is attributed to Net Solutions vs Chameleon Collective, etc.
+    const source = new URLSearchParams(location.search).get("utm_source") || null;
+
     const btn = form.querySelector(".submit");
     const label = btn.textContent;
     btn.disabled = true; btn.textContent = "Sending…";
@@ -235,7 +239,7 @@
           "Content-Type": "application/json",
           Prefer: "return=minimal"
         },
-        body: JSON.stringify({ email: val })
+        body: JSON.stringify({ email: val, source })
       });
       // 201 = saved. 409 = already on the list (unique email) — also success.
       if (res.status === 201 || res.status === 409) {
